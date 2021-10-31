@@ -16,6 +16,7 @@ client.connect(err => {
     const database = client.db("TravelDoor");
     const locationCollection = database.collection("locations");
     const destinationCollection = database.collection("destinations");
+    const userCollection = database.collection("users");
     console.log('connected successfully');
 
     app.get('/locations', async (req, res) => {
@@ -24,6 +25,48 @@ client.connect(err => {
     })
     app.get('/destinations', async (req, res) => {
         const result = await destinationCollection.find({}).toArray();
+        res.send(result);
+    })
+    app.post('/addUser', async (req, res) => {
+        console.log(req.body);
+        const result = await userCollection.insertOne(req.body);
+        res.send(result);
+    })
+    app.get('/users', async (req, res) => {
+        const result = await userCollection.find({}).toArray();
+        res.send(result);
+    })
+    app.delete('/user/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: ObjectId(id) };
+        const result = await userCollection.deleteOne(query);
+        res.send(result);
+    })
+    app.get('/user/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: ObjectId(id) };
+        const result = await userCollection.findOne(query);
+        res.send(result);
+    })
+    app.put('/user/:id', async (req, res) => {
+        const id = req.params.id;
+        const updateUser = req.body;
+        console.log(updateUser);
+        const filter = { _id: ObjectId(id) };
+        const options = { upsert: true };
+        const updateDoc = {
+            $set: {
+                name: updateUser.name,
+                email: updateUser.email,
+                contact: updateUser.contact,
+                address: updateUser.address,
+                count: updateUser.count,
+                totalPrice: updateUser.totalPrice,
+                tripPrice: updateUser.tripPrice,
+                location: updateUser.location,
+            },
+        };
+        const result = await userCollection.updateOne(filter, updateDoc, options);
         res.send(result);
     })
 });
